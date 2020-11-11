@@ -1,10 +1,11 @@
 # Carrefour-Kenya-Analysis-
 
-Inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales 
+Giving relevant marketing strategies that will result in the highest no. of sales 
 
 
 ## Projects Intro/Objective
 
+Main objective is to inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales 
 
 
 Part 1: Dimensionality Reduction
