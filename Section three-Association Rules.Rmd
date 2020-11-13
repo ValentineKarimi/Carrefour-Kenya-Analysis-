@@ -1,0 +1,223 @@
+---
+title: "Part two"
+author: "Valentine Karimi"
+date: "11/13/2020"
+output: 
+html_document:
+ md_document:
+    variant: markdown_github
+
+---
+**Loading required libraries** 
+
+```{r setup, include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+# Loading the tidyverse library
+
+library(tidyverse)
+
+# Loading the arules library
+#
+library(arules)
+
+
+#
+```
+
+
+**Reading and viewing our data**
+
+```{r, include=TRUE, echo=TRUE}
+path<- "http://bit.ly/SupermarketDatasetII"
+salesdf <- read.transactions(path, sep= ",")
+
+
+
+
+# Verifying the object's class
+# ---
+# This should show us transactions as the type of data that we will need
+# ---
+# 
+class(salesdf)
+
+# Previewing our first 5 transactions
+#
+inspect(salesdf[1:5])
+
+
+
+#Generating a summary of the transaction dataset
+# ---
+# This would give us some information such as the most purchased items, 
+# distribution of the item sets (no. of items purchased in each transaction), etc.
+# ---
+# 
+summary(salesdf)
+
+```
+
+**Plot the frequency of items**
+
+
+```{r, include=TRUE, echo=TRUE}
+# Displaying top 10 most common items in the salesdf dataset and the items whose relative #importance is at least 10%
+
+
+par(mfrow = c(1, 2)) # set margins
+
+# plot the frequency of items
+itemFrequencyPlot(salesdf, topN = 10,col="cadetblue")  # 10 most common items
+itemFrequencyPlot(salesdf, support = 0.1,col="darkgreen") #relative importance is at least 10%
+```
+
+
+**Visualization of the Sparse matrix of transactions**
+
+```{r, include=TRUE, echo=TRUE}
+# a visualization of the sparse matrix for the first five transactions
+image(salesdf[1:5])
+
+#visualization of a random sample of 100 transactions
+
+image(sample(salesdf, 100))
+
+
+```
+
+**Training a model on the data**
+```{r}
+
+apriori(salesdf)
+
+
+#default settings result in zero rules learned
+
+
+```
+
+**Set better support and confidence levels to learn more rules**
+
+```{r, include=TRUE, echo=TRUE}
+
+#
+rules <- apriori (salesdf, parameter = list(supp = 0.001, conf = 0.8)) 
+rules
+```
+
+
+```{r, include=TRUE, echo=TRUE}
+rules1 <- apriori (salesdf, parameter = list(supp = 0.002, conf = 0.6)) #Increasing minimum support
+rules1
+```
+
+
+```{r, include=TRUE, echo=TRUE}
+
+rules2 <- apriori (salesdf, parameter = list(supp = 0.001, conf = 0.6)) #Decreasing confidence
+rules2
+
+
+
+```
+we increased the minimum support of 0.001 to 0.002 and model rules went from 74 to 43. This would lead us to understand that using a high level of support might make the model lose interesting rules. In the second example, we decreased the minimum confidence level to 0.6 and the number of model rules went from 74 to 545. This would mean that using a low confidence level increases the number of rules to quite an extent and many will not be useful.
+
+```R
+
+**Exploratory data for best model**
+
+```
+```{r}
+
+
+summary(rules)
+```
+
+
+```{r}
+
+
+# Observing rules built in our model i.e. first 5 model rules
+# ---
+# 
+inspect(rules[1:10])
+```
+With 85% confidence someone buying  milk and pasta will buy shrimp  and someone buying black tea and frozen smoothie will with 85% cofidence buy milk and someone buying red wine and tomato sauce has a 80% chance of also getting chocolate
+
+```{r}
+# Ordering these rules by a criteria such as the level of confidence
+# then looking at the first five rules.
+
+
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(rules[1:5])
+```
+
+
+If someone buys french fries, mushroom cream sauce and pasta they will 100% buy escalope
+If they buy meatballs, cake and mineral water they will 100% buy milk 
+```{r}
+
+# If we're interested in making a promotion relating to the sale of mineral water, 
+# we could create a subset of rules concerning these products 
+# ---
+# This would tell us the items that the customers bought before purchasing yogurt
+# ---
+# 
+water <- subset(rules, subset = rhs %pin% "mineral water")
+ 
+# Then order by confidence
+water<-sort(water, by="confidence", decreasing=TRUE)
+inspect(water[1:5])
+```
+someone who takes ground beef,light cream,olive oil or cake,olive oil,shrimp  will most likely take mineral water. Hence water should be close to these items  
+
+```{r}
+# What if we wanted to determine items that customers might buy 
+# who have previously bought mineral water?
+# ---
+# 
+water <- subset(rules, subset = lhs %pin% "mineral water")
+ 
+# Then order by confidence
+
+water<-sort(water, by="confidence", decreasing=TRUE)
+inspect(water[1:5])
+```
+
+
+```{r}
+
+# sorting the rules by lift
+
+
+
+inspect(sort(rules, by = "lift")[1:5], decreasing=TRUE)
+```
+
+These rules appear to be more interesting than the ones we looked at previously. The first rule, with a lift of about 12.722185 , implies that people who buy eggs, mineral water,pasta are nearly 12 times more likely to buy shrimp than the typical customer—perhaps for a pasta dinner of some sort? Rule 5 is also interesting. frozen vegetables is over nine times more likely to be found in a shopping cart with chocolate, ground beef, milk, mineral water, spaghetti versus other carts, suggesting perhaps a quick romantic dinner?
+
+some of the items that should be close to mineral water is ground beef and shrimp as they are always picked before or after by customers 
+
+Pasta should be close to mineral water, escalope and shrimp as they have an association 
+
+ A person buying french fries, mushroom cream sauce,pasta}with 100% confidence will 12 times most likely pick{escalope}than the typical customer hence these types of food should be close together 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
